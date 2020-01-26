@@ -4,6 +4,7 @@ from datetime import date
 
 from loan import Loan
 from loan_repayment import *
+from minimize_cost import *
 from utilities import print_schedules
 
 ###################################################################################
@@ -14,7 +15,6 @@ if __name__ == '__main__':
             principal=4500.00,
             apr=0.040,
             min_monthly_payment=55.00,
-            interest=5.00,
             deferment_monthly_payment=00.00,
             start_date=date(2018, 12, 16),
             deferment_exit_date=date(2019, 6, 16),
@@ -44,16 +44,22 @@ if __name__ == '__main__':
     # Default repayment schedule
     default_cost = sum(loan.default_cost() for loan in loans)
 
+    # Optimal schedule
+    dfs_min = minimize_cost(loans, max_payment)
+    cost_min = sum( df['Payment'].sum() for df in dfs_min )
+
     ############# Print Results ###################
     sep = '-'*80
     print("{}\nHIGH INTEREST\n{}".format(sep, sep))
     print_schedules(dfs_hi_int)
     print("{}\nLOW BALANCE\n{}".format(sep, sep))
     print_schedules(dfs_low_bal)
+    print("{}\nOPTIMAL\n{}".format(sep, sep))
+    print_schedules(dfs_min)
 
     print("---TOTAL COSTS---")
-    print("\tMonthly Payment      : ${:0,.2f}".format( max_payment ))
-    print("\tDefault              : ${:0,.2f}".format( test.default_cost() + test2.default_cost() ))
-    print("\tHighest Interest Sim : ${:0,.2f}".format( float(cost_high_int_sim) ))
-    print("\tLowest Balance Sim   : ${:0,.2f}".format( float(cost_low_bal_sim)))
-
+    print("\tMonthly Payment      : ${:0,.2f}".format(max_payment))
+    print("\tDefault              : ${:0,.2f}".format(default_cost))
+    print("\tHighest Interest Sim : ${:0,.2f}".format(cost_high_int_sim))
+    print("\tLowest Balance Sim   : ${:0,.2f}".format(cost_low_bal_sim))
+    print("\tOptimized Sim        : ${:0,.2f}".format(cost_min))

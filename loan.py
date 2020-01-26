@@ -68,7 +68,7 @@ class Loan:
             raise ValueError("Minimum monthly payment of ${:0,.2f} is less than interest accrued in a month of ${:0,.2f} ".format(self.mp, ipm))
 
         if (self.min_mp > self.mp):
-            raise ValueError("Minimum monthly payment of ${:0,.2f} is less than set monthly payment of ${:0,.2f} ".format(self.min_mp, self.mp))
+            raise ValueError("Minimum monthly payment of ${:0,.2f} is more than set monthly payment of ${:0,.2f} ".format(self.min_mp, self.mp))
 
 
     def expected_monthly_payment(self):
@@ -81,6 +81,11 @@ class Loan:
 
 
     def default_cost(self):
+        """
+        Calculates the total cost for this loan when paying only the minimum monthly payment for the entire term.
+
+        :return: cost, the default cost of this loan
+        """
         return (self.mpr * self.init_principal * self.term)/(1-(1+self.mpr)**(-self.term))
 
 
@@ -92,6 +97,14 @@ class Loan:
         next_payment_date = start + self.next_payment
         m = relativedelta(self.deferment_exit_date, next_payment_date).months + 1
         return m if m > 0 else 0
+    
+
+    def months_to_repayment(self):
+        """
+        Returns the number of months until the loan has been repayed in full, given
+          the current principal, APR, and monthly payment.
+        """
+        return -math.log(1 - self.mpr*self.principal / self.mp) / math.log(1 + self.mpr)
 
 
     def months_to_repayment(self):
