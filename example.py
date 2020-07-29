@@ -5,6 +5,7 @@ from dateutil.relativedelta import relativedelta
 
 from loan import Loan
 from loan_repayment import *
+from minimize_cost import *
 from utilities import print_schedules
 
 TODAY = date.today()
@@ -49,15 +50,22 @@ if __name__ == '__main__':
     dfs_low_bal = lrp_low_bal.schedule_lowest_balance()
     cost_low_bal_sim = sum( df['Payment'].sum() for df in dfs_low_bal )
 
+    # Optimal schedule
+    dfs_min = minimize_cost(LOANS, MAX_PAYMENT)
+    cost_min = sum( df['Payment'].sum() for df in dfs_min )
+
     ############# Print Results ###################
     header = "{0}\n{{}}\n{0}".format('-'*80)
     print(header.format("HIGH INTEREST"))
     print_schedules(dfs_hi_int)
     print(header.format("LOW BALANCE"))
     print_schedules(dfs_low_bal)
+    print(header.format("OPTIMAL"))
+    print_schedules(dfs_min)
 
     print("---TOTAL COSTS---")
     print("\tMonthly Payment      : ${:0,.2f}".format(MAX_PAYMENT))
     print("\tDefault              : ${:0,.2f}".format(default_cost))
     print("\tHighest Interest Sim : ${:0,.2f}".format(cost_high_int_sim))
     print("\tLowest Balance Sim   : ${:0,.2f}".format(cost_low_bal_sim))
+    print("\tOptimized Sim        : ${:0,.2f}".format(cost_min))

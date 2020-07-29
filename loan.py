@@ -42,7 +42,7 @@ class Loan:
         #   Data order is (date, balance, principal, payment)
         self.data = []
         # Set initial simulation step
-        self.data.append( (self.cur_date, self.balance, self.principal, 0) )
+        self.data.append( (self.cur_date, 0, self.balance, self.principal, 0) )
 
         # Validate initialization arguments
         self.validate()
@@ -125,9 +125,11 @@ class Loan:
             # Interest does not accrue during deferment
             if self.cur_date <= self.deferment_exit_date:
                 payment = self.dmp
+                interest = 0
             else:
                 payment = self.mp
-                self.balance += self.principal*self.dpr*days
+                interest = self.dpr*days
+                self.balance += self.principal*interest
 
             self.balance -= payment
             # Principal is reduced only if all interest is paid off
@@ -140,7 +142,7 @@ class Loan:
                 self.principal = 0
 
             total_payment += payment
-            self.data.append( (self.cur_date, self.balance, self.principal, payment) )
+            self.data.append( (self.cur_date, interest, self.balance, self.principal, payment) )
 
         return total_payment
 
@@ -151,7 +153,7 @@ class Loan:
 
         :return: df, the data frame
         """
-        return pd.DataFrame(self.data, columns=('Date', 'Balance', 'Principal', 'Payment'))
+        return pd.DataFrame(self.data, columns=('Date', 'Interest', 'Balance', 'Principal', 'Payment'))
 
 
     # Precondition: self.validate() raises no exceptions
@@ -176,15 +178,10 @@ class Loan:
     def simulate_payments(self, payments):
         """
         Continues the simulation according to the given payments, i.e.
-            payment[i] is applied to term i
-
-        :raises ValueError: if payment[i] is less than the minimum payment and
-                            the loan has not been paid in full
+            payment[i] is applied to term i.
         """
         for mp, t in zip(payments, range(len(payments))):
             if self.balance <= 0.0:
                 break
-            if (self.min_mp > mp):
-                raise ValueError("Monthly payment of ${:0,.2f} for term {:d} does not cover balance (${:0,.2f}) or minimum monthly payment (${:0,.2f})".format(mp, t, self.balance, self.min_mp))
-            self.mp = mp
+            self.mp = self.dmp = mp
             self.simulate_payment()
